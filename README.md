@@ -44,34 +44,19 @@ This project is developed as a demonstration prototype using browser-based stora
 | QR Code | Booking confirmation references |
 | Cloudflare Pages | Deployment and hosting |
 
-## 🖥️ Screenshots
-
-<!-- Add your project screenshots here -->
-
-### Login Page
-<!-- ![Login Page](screenshots/login.png) -->
-
-### Dashboard
-<!-- ![Dashboard](screenshots/dashboard.png) -->
-
-### Parking Map
-<!-- ![Parking Map](screenshots/parking-map.png) -->
-
-### Booking Confirmation
-<!-- ![Booking Confirmation](screenshots/booking-confirmation.png) -->
 
 ## 🚀 Getting Started
 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/YOUR-REPOSITORY.git
+git clone https://github.com/pr7tik/PARKMATE.git
 ```
 
 ### 2. Open the project
 
 ```bash
-cd YOUR-REPOSITORY
+cd PARKMATE
 ```
 
 ### 3. Run the application
@@ -102,6 +87,9 @@ PARK-MATE is an independent academic demonstration project.
 - Does not connect to actual university authentication systems.
 - Parking availability, notifications, and campus navigation use demonstration data.
 - Reservations do not represent actual parking permissions.
-<p align="center">
-  Made with >3 using HTML, CSS & JavaScript
-</p>
+
+<h1 align="center">
+  <font color="#555555">
+    Made with >3 using HTML, CSS & JavaScript
+  </font>
+</h1>
