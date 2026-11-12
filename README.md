@@ -10,6 +10,7 @@
 
 ---
 
+
 ## 📌 About the Project
 
 PARK-MATE is a web-based campus parking management system designed to simplify parking for students and staff at Lovely Professional University.
@@ -17,6 +18,7 @@ PARK-MATE is a web-based campus parking management system designed to simplify p
 The platform allows users to explore campus parking availability, select parking slots, make reservations, manage registered vehicles, and locate their parked vehicles through a centralized dashboard.
 
 This project is developed as a demonstration prototype using browser-based storage and simulated campus parking data.
+
 
 ## ✨ Features
 
@@ -32,6 +34,7 @@ This project is developed as a demonstration prototype using browser-based stora
 - **Responsive UI** – Designed for desktop and mobile devices.
 - **Cross-Tab Synchronization** – Keep booking information synchronized between browser tabs.
 
+
 ## 🛠️ Tech Stack
 
 | Technology | Purpose |
@@ -43,6 +46,7 @@ This project is developed as a demonstration prototype using browser-based stora
 | SessionStorage | Temporary booking data |
 | QR Code | Booking confirmation references |
 | Cloudflare Pages | Deployment and hosting |
+
 
 
 ## 🚀 Getting Started
@@ -67,6 +71,8 @@ Alternatively, use the **Live Server** extension in VS Code.
 
 No backend installation or database configuration is required for the demonstration.
 
+
+
 ## 🔐 Logins
 
 The authentication system is designed exclusively for demonstration purposes.
@@ -78,6 +84,7 @@ The authentication system is designed exclusively for demonstration purposes.
 Passwords are not stored by the application.
 
 
+
 ## ⚠️ Disclaimer
 
 PARK-MATE is an independent academic demonstration project.
@@ -87,9 +94,3 @@ PARK-MATE is an independent academic demonstration project.
 - Does not connect to actual university authentication systems.
 - Parking availability, notifications, and campus navigation use demonstration data.
 - Reservations do not represent actual parking permissions.
-
-<h1 align="center">
-  <font color="#555555">
-    Made with >3 using HTML, CSS & JavaScript
-  </font>
-</h1>
