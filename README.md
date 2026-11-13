@@ -77,8 +77,8 @@ No backend installation or database configuration is required for the demonstrat
 
 The authentication system is designed exclusively for demonstration purposes.
 
-- User ID: Any non-empty value.
-- Password: Any non-empty value.
+- User ID: 12629947.
+- Password: LPU@321.
 - No actual LPU credentials are required.
 
 Passwords are not stored by the application.
