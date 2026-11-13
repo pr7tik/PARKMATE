@@ -1,0 +1,107 @@
+/* ==========================================================================
+   css/responsive.css
+   Responsive media queries for desktop, tablet, and mobile layouts.
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .dashboard-cols {
+    grid-template-columns: 1fr;
+  }
+  .find-car-grid {
+    grid-template-columns: 1fr;
+  }
+  .nav-system-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-grid-layout {
+    grid-template-columns: 1fr;
+  }
+  .slots-row {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 280px;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.2);
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .mobile-close-btn {
+    display: block;
+  }
+
+  .hamburger-btn {
+    display: block;
+  }
+
+  .topbar {
+    padding: 0 1rem;
+  }
+
+  .topbar-search {
+    display: none;
+  }
+
+  .user-meta {
+    display: none;
+  }
+
+  .welcome-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .banner-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .profile-layout-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .slots-row {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .garage-layout {
+    min-width: 480px;
+  }
+
+  .views-wrapper {
+    padding: 1rem;
+  }
+
+  .blocks-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .slots-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .action-btn-row {
+    flex-direction: column;
+  }
+  .tab-pill-group {
+    width: 100%;
+    overflow-x: auto;
+  }
+}
