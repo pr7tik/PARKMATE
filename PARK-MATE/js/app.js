@@ -1,14 +1,11 @@
 /**
+ * js/app.js
  * LPU CENTRAL APPLICATION CONTROLLER
- * Routing, strict credentials verification, passkey protection, and cross-tab synchronizer.
  */
 
 window.App = {
   currentUser: null,
-
-  // Allowed University Registration IDs & Universal Password
-  ALLOWED_USERS: ['12629947', '12614967', '12629686', '12626855'],
-  UNIVERSAL_PASSWORD: 'LPU@321',
+  isVehicleSectionOpen: false,
 
   init() {
     this.checkAuth();
@@ -23,25 +20,43 @@ window.App = {
     this.updateDashboardKpis();
     this.renderActivityTimeline();
 
-    ParkingModule.init();
-    BookingModule.init();
-    NavigationModule.init();
-    AdminModule.init();
+    if (typeof ParkingModule !== 'undefined' && ParkingModule.init) ParkingModule.init();
+    if (typeof BookingModule !== 'undefined' && BookingModule.init) BookingModule.init();
+    if (typeof NavigationModule !== 'undefined' && NavigationModule.init) NavigationModule.init();
+    if (typeof AdminModule !== 'undefined' && AdminModule.init) AdminModule.init();
   },
 
-  // ALWAYS require login on every page refresh or initial visit
+  // =========================================================================
+  // AUTHENTICATION STATE & PERSISTENCE
+  // =========================================================================
   checkAuth() {
-    AppStorage.clearUser();
-    sessionStorage.removeItem('lpu_admin_authenticated');
-    this.currentUser = null;
-    this.showLoginView();
+    // 1. Check if user is already saved in AppStorage or localStorage
+    let savedUser = null;
+    if (typeof AppStorage !== 'undefined' && typeof AppStorage.getUser === 'function') {
+      savedUser = AppStorage.getUser();
+    }
+    if (!savedUser) {
+      savedUser = localStorage.getItem('lpu_active_user');
+    }
+
+    if (savedUser) {
+      // User is logged in: Restore session across reloads
+      const regId = typeof savedUser === 'object' ? (savedUser.regId || savedUser.id) : savedUser;
+      this.currentUser = regId;
+      this.showAppView();
+    } else {
+      // No active session: Show login screen
+      this.currentUser = null;
+      this.showLoginView();
+    }
   },
 
   showLoginView() {
-    document.getElementById('login-view').classList.remove('hidden');
-    document.getElementById('app-view').classList.add('hidden');
+    const loginView = document.getElementById('login-view');
+    const appView = document.getElementById('app-view');
+    if (loginView) loginView.classList.remove('hidden');
+    if (appView) appView.classList.add('hidden');
 
-    // Clear input fields and errors on every display
     const userIdInput = document.getElementById('login-userid');
     const pwdInput = document.getElementById('login-password');
     const errorBox = document.getElementById('login-error');
@@ -52,8 +67,10 @@ window.App = {
   },
 
   showAppView() {
-    document.getElementById('login-view').classList.add('hidden');
-    document.getElementById('app-view').classList.remove('hidden');
+    const loginView = document.getElementById('login-view');
+    const appView = document.getElementById('app-view');
+    if (loginView) loginView.classList.add('hidden');
+    if (appView) appView.classList.remove('hidden');
 
     const topDisplay = document.getElementById('top-user-display');
     const dashName = document.getElementById('dash-user-name');
@@ -62,11 +79,20 @@ window.App = {
     const avatar = document.getElementById('user-avatar-initials');
     const profAvatar = document.getElementById('profile-big-avatar');
 
-    const firstChar = this.currentUser ? this.currentUser.charAt(0).toUpperCase() : 'U';
+    // Retrieve full display name if saved in UsersDB
+    let displayName = this.currentUser || 'Student';
+    if (typeof UsersDB !== 'undefined' && UsersDB.getUser) {
+      const u = UsersDB.getUser(this.currentUser);
+      if (u && u.name) displayName = u.name;
+    } else if (this.currentUser === '12629947') {
+      displayName = '12629947';
+    }
+
+    const firstChar = displayName ? displayName.charAt(0).toUpperCase() : 'U';
 
     if (topDisplay) topDisplay.textContent = this.currentUser;
-    if (dashName) dashName.textContent = this.currentUser;
-    if (profName) profName.textContent = `Reg. No: ${this.currentUser}`;
+    if (dashName) dashName.textContent = displayName;
+    if (profName) profName.textContent = displayName;
     if (profIdInput) profIdInput.value = this.currentUser;
     if (avatar) avatar.textContent = firstChar;
     if (profAvatar) profAvatar.textContent = firstChar;
@@ -74,22 +100,68 @@ window.App = {
 
   setupAuthHandlers() {
     const loginForm = document.getElementById('login-form');
+    const signupForm = document.getElementById('signup-form');
     const errorBox = document.getElementById('login-error');
-    const togglePwd = document.getElementById('toggle-pwd-btn');
-    const pwdInput = document.getElementById('login-password');
-    const userIdInput = document.getElementById('login-userid');
+    const tabSignIn = document.getElementById('tab-btn-signin');
+    const tabSignUp = document.getElementById('tab-btn-signup');
 
-    if (togglePwd && pwdInput) {
-      togglePwd.addEventListener('click', () => {
-        const isPwd = pwdInput.type === 'password';
-        pwdInput.type = isPwd ? 'text' : 'password';
+    if (tabSignIn && tabSignUp) {
+      tabSignIn.addEventListener('click', () => {
+        tabSignIn.classList.add('active');
+        tabSignUp.classList.remove('active');
+        if (loginForm) loginForm.classList.remove('hidden');
+        if (signupForm) signupForm.classList.add('hidden');
+        if (errorBox) errorBox.classList.add('hidden');
+      });
+
+      tabSignUp.addEventListener('click', () => {
+        tabSignUp.classList.add('active');
+        tabSignIn.classList.remove('active');
+        if (signupForm) signupForm.classList.remove('hidden');
+        if (loginForm) loginForm.classList.add('hidden');
+        if (errorBox) errorBox.classList.add('hidden');
       });
     }
+
+    const togglePwd = document.getElementById('toggle-pwd-btn');
+    const pwdInput = document.getElementById('login-password');
+    if (togglePwd && pwdInput) {
+      togglePwd.addEventListener('click', () => {
+        pwdInput.type = pwdInput.type === 'password' ? 'text' : 'password';
+      });
+    }
+
+    const vehToggleBtn = document.getElementById('btn-toggle-vehicle');
+    const vehBox = document.getElementById('optional-vehicle-fields');
+    const vehIcon = document.getElementById('veh-toggle-icon');
+    const vehText = document.getElementById('veh-toggle-text');
+
+    if (vehToggleBtn && vehBox) {
+      vehToggleBtn.addEventListener('click', () => {
+        this.isVehicleSectionOpen = !this.isVehicleSectionOpen;
+        if (this.isVehicleSectionOpen) {
+          vehBox.classList.remove('hidden');
+          if (vehIcon) vehIcon.textContent = '−';
+          if (vehText) vehText.textContent = 'Remove Vehicle Details';
+        } else {
+          vehBox.classList.add('hidden');
+          if (vehIcon) vehIcon.textContent = '+';
+          if (vehText) vehText.textContent = 'Add Vehicle Details (Optional)';
+          const regInput = document.getElementById('signup-veh-reg');
+          if (regInput) regInput.value = '';
+        }
+      });
+    }
+
+    const isCaptchaVerified = (formEl) => {
+      const response = formEl.querySelector('[name="cf-turnstile-response"]');
+      return response && response.value && response.value.length > 0;
+    };
 
     if (loginForm) {
       loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const enteredId = userIdInput.value.trim();
+        const enteredId = document.getElementById('login-userid').value.trim();
         const enteredPwd = pwdInput.value.trim();
 
         if (!enteredId || !enteredPwd) {
@@ -98,33 +170,112 @@ window.App = {
           return;
         }
 
-        // Strict verification
-        const isUserValid = this.ALLOWED_USERS.includes(enteredId);
-        const isPasswordValid = (enteredPwd === this.UNIVERSAL_PASSWORD);
-
-        if (!isUserValid || !isPasswordValid) {
-          errorBox.textContent = 'Invalid University Registration ID or Password. Access restricted to authorized student/faculty accounts.';
+        if (!isCaptchaVerified(loginForm)) {
+          errorBox.textContent = 'Please complete the Cloudflare security verification checkbox.';
           errorBox.classList.remove('hidden');
-          pwdInput.value = '';
-          pwdInput.focus();
-          this.showToast('Authentication failed: Unauthorized credentials', 'error');
           return;
         }
 
-        // Login approved
+        let matchedUser = null;
+        if (enteredId === '12629947' && enteredPwd === 'LPU@321') {
+          matchedUser = (typeof UsersDB !== 'undefined' && UsersDB.DEFAULT_USER)
+            ? UsersDB.DEFAULT_USER
+            : { regId: '12629947', name: 'Authorized Campus User', email: '12629947@lpu.in' };
+        } else if (typeof UsersDB !== 'undefined' && UsersDB.authenticate) {
+          matchedUser = UsersDB.authenticate(enteredId, enteredPwd);
+        }
+
+        if (!matchedUser) {
+          errorBox.textContent = 'Invalid credentials. User not found or incorrect password. Please register first.';
+          errorBox.classList.remove('hidden');
+          pwdInput.value = '';
+          pwdInput.focus();
+          this.showToast('Access Denied: Account not found', 'error');
+          return;
+        }
+
         errorBox.classList.add('hidden');
-        AppStorage.setUser(enteredId);
-        this.currentUser = enteredId;
+
+        // Persist session across refreshes
+        if (typeof AppStorage !== 'undefined' && AppStorage.setUser) {
+          AppStorage.setUser(matchedUser.regId);
+        }
+        localStorage.setItem('lpu_active_user', matchedUser.regId);
+
+        this.currentUser = matchedUser.regId;
         this.showAppView();
-        this.showToast(`Welcome back, ${enteredId}!`, 'success');
+        this.showToast(`Welcome back, ${matchedUser.name}!`, 'success');
       });
     }
 
+    if (signupForm) {
+      signupForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const regId = document.getElementById('signup-userid').value.trim();
+        const name = document.getElementById('signup-fullname').value.trim();
+        const email = document.getElementById('signup-email').value.trim();
+        const pass = document.getElementById('signup-password').value.trim();
+        const vehReg = document.getElementById('signup-veh-reg') ? document.getElementById('signup-veh-reg').value.trim().toUpperCase() : '';
+        const vehType = document.getElementById('signup-veh-type') ? document.getElementById('signup-veh-type').value : '4w';
+
+        if (!regId || !name || !email || !pass) {
+          errorBox.textContent = 'Please complete all required fields.';
+          errorBox.classList.remove('hidden');
+          return;
+        }
+
+        if (pass.length < 6) {
+          errorBox.textContent = 'Password must be at least 6 characters.';
+          errorBox.classList.remove('hidden');
+          return;
+        }
+
+        if (!isCaptchaVerified(signupForm)) {
+          errorBox.textContent = 'Please complete the Cloudflare verification checkbox.';
+          errorBox.classList.remove('hidden');
+          return;
+        }
+
+        const result = UsersDB.saveUser({
+          regId,
+          password: pass,
+          name,
+          email,
+          hasVehicle: Boolean(vehReg),
+          vehicleReg: vehReg || null,
+          vehicleType: vehReg ? vehType : null
+        });
+
+        if (!result.success) {
+          errorBox.textContent = result.message;
+          errorBox.classList.remove('hidden');
+          return;
+        }
+
+        if (vehReg) {
+          const vehicles = AppStorage.getVehicles();
+          vehicles.push({ regNumber: vehReg, type: vehType, model: `${name}'s Registered Vehicle` });
+          AppStorage.saveVehicles(vehicles);
+        }
+
+        this.showToast('Registration successful! Please sign in with your credentials.', 'success');
+        signupForm.reset();
+
+        if (tabSignIn) tabSignIn.click();
+        const loginIdInput = document.getElementById('login-userid');
+        if (loginIdInput) loginIdInput.value = regId;
+      });
+    }
+
+    // Sign out handlers (Explicitly clears session only when clicked)
     const logoutBtns = [document.getElementById('btn-logout'), document.getElementById('profile-logout-btn')];
     logoutBtns.forEach(b => {
       if (!b) return;
       b.addEventListener('click', () => {
-        AppStorage.clearUser();
+        if (typeof AppStorage !== 'undefined' && AppStorage.clearUser) {
+          AppStorage.clearUser();
+        }
+        localStorage.removeItem('lpu_active_user');
         sessionStorage.removeItem('lpu_admin_authenticated');
         this.currentUser = null;
         this.showLoginView();
@@ -140,14 +291,14 @@ window.App = {
         const targetView = link.getAttribute('data-view');
         if (!targetView) return;
 
-        // Challenge admin security passkey
         if (targetView === 'admin' && !this.isAdminAuthenticated()) {
           this.showAdminAuthModal();
           return;
         }
 
         this.switchView(targetView);
-        document.getElementById('app-sidebar').classList.remove('mobile-open');
+        const sidebar = document.getElementById('app-sidebar');
+        if (sidebar) sidebar.classList.remove('mobile-open');
       });
     });
 
@@ -155,12 +306,14 @@ window.App = {
     const closeBtn = document.getElementById('sidebar-close-btn');
     if (mobileBtn) {
       mobileBtn.addEventListener('click', () => {
-        document.getElementById('app-sidebar').classList.add('mobile-open');
+        const sidebar = document.getElementById('app-sidebar');
+        if (sidebar) sidebar.classList.add('mobile-open');
       });
     }
     if (closeBtn) {
       closeBtn.addEventListener('click', () => {
-        document.getElementById('app-sidebar').classList.remove('mobile-open');
+        const sidebar = document.getElementById('app-sidebar');
+        if (sidebar) sidebar.classList.remove('mobile-open');
       });
     }
 
@@ -250,26 +403,33 @@ window.App = {
       target.classList.add('active');
     }
 
-    if (viewName === 'bookings') BookingModule.renderMyBookings();
-    if (viewName === 'admin') AdminModule.renderAdminView();
+    if (viewName === 'bookings' && typeof BookingModule !== 'undefined') BookingModule.renderMyBookings();
+    if (viewName === 'admin' && typeof AdminModule !== 'undefined') AdminModule.renderAdminView();
     if (viewName === 'dashboard') {
       this.updateDashboardKpis();
-      ParkingModule.renderDashboardOverview();
+      if (typeof ParkingModule !== 'undefined') ParkingModule.renderDashboardOverview();
+    }
+    if (viewName === 'navigation' && typeof NavigationModule !== 'undefined') {
+      NavigationModule.renderCampusMap();
     }
   },
 
   setupCrossTabSync() {
     window.addEventListener('storage', (e) => {
-      if (e.key === AppStorage.KEYS.SYNC_SIGNAL && e.newValue) {
+      if (typeof AppStorage !== 'undefined' && AppStorage.KEYS && e.key === AppStorage.KEYS.SYNC_SIGNAL && e.newValue) {
         try {
           const signal = JSON.parse(e.newValue);
           if (signal.type === 'BOOKING_CREATED') {
             this.showToast(`Gate Pass Confirmed: Bay ${signal.slotId}!`, 'success');
             this.updateDashboardKpis();
-            ParkingModule.renderDashboardOverview();
-            ParkingModule.renderFullBlocksGrid();
-            ParkingModule.renderGarageMap(ParkingModule.currentBlock);
-            BookingModule.renderMyBookings();
+            if (typeof ParkingModule !== 'undefined') {
+              ParkingModule.renderDashboardOverview();
+              ParkingModule.renderFullBlocksGrid();
+              ParkingModule.renderGarageMap(ParkingModule.currentBlock);
+            }
+            if (typeof BookingModule !== 'undefined') {
+              BookingModule.renderMyBookings();
+            }
             this.renderNotificationsList();
             this.renderActivityTimeline();
           }
@@ -281,11 +441,13 @@ window.App = {
   },
 
   updateDashboardKpis() {
-    const slots = AppStorage.getSlots();
+    if (typeof AppStorage === 'undefined') return;
+    const slots = AppStorage.getSlots ? AppStorage.getSlots() : [];
     const total = slots.length;
     const available = slots.filter(s => s.status === 'available').length;
     const occupied = slots.filter(s => s.status === 'occupied').length;
-    const activeBookings = AppStorage.getBookings().filter(b => b.status === 'active').length;
+    const bookings = AppStorage.getBookings ? AppStorage.getBookings() : [];
+    const activeBookings = bookings.filter(b => b.status === 'active').length;
     const pct = total ? Math.round((available / total) * 100) : 0;
 
     const kpiTotal = document.getElementById('kpi-total-slots');
@@ -305,13 +467,12 @@ window.App = {
 
   renderActivityTimeline() {
     const container = document.getElementById('dash-activity-list');
-    if (!container) return;
-    const bookings = AppStorage.getBookings();
+    if (!container || typeof AppStorage === 'undefined') return;
+    const bookings = AppStorage.getBookings ? AppStorage.getBookings() : [];
 
     let logs = [
-      { title: 'ANPR Gate 1: PB 08 CC 4821 entry verified', time: '12 mins ago' },
-      { title: 'Automated barrier opened at Block 22', time: '28 mins ago' },
-      { title: 'Security Patrol checkpoint cleared: Zone B', time: '1 hour ago' }
+      { title: 'ANPR Gate 1: Automated scan active', time: '12 mins ago' },
+      { title: 'Barrier Gate 2: Sensor verified', time: '28 mins ago' }
     ];
 
     if (bookings.length > 0) {
@@ -369,10 +530,10 @@ window.App = {
   renderVehiclesList() {
     const container = document.getElementById('vehicles-container-grid');
     const selectForParked = document.getElementById('save-vehicle-select');
-    if (!container) return;
+    if (!container || typeof AppStorage === 'undefined') return;
     container.innerHTML = '';
 
-    const vehicles = AppStorage.getVehicles();
+    const vehicles = AppStorage.getVehicles ? AppStorage.getVehicles() : [];
 
     if (selectForParked) {
       selectForParked.innerHTML = '';
@@ -448,7 +609,7 @@ window.App = {
     if (showOnMapBtn) {
       showOnMapBtn.addEventListener('click', () => {
         const saved = AppStorage.getParkedLocation();
-        if (saved) {
+        if (saved && typeof ParkingModule !== 'undefined') {
           ParkingModule.selectBlockAndShowMap(saved.block);
         }
       });
@@ -456,7 +617,8 @@ window.App = {
   },
 
   renderSavedParkedLocation() {
-    const saved = AppStorage.getParkedLocation();
+    if (typeof AppStorage === 'undefined') return;
+    const saved = AppStorage.getParkedLocation ? AppStorage.getParkedLocation() : null;
     const content = document.getElementById('saved-loc-content');
     const empty = document.getElementById('saved-loc-empty');
     if (!content || !empty) return;
@@ -468,11 +630,19 @@ window.App = {
       content.classList.remove('hidden');
       empty.classList.add('hidden');
 
-      document.getElementById('display-saved-block').textContent = `Block ${saved.block}`;
-      document.getElementById('display-saved-slot').textContent = saved.slot;
-      document.getElementById('display-saved-vehicle').textContent = saved.vehicle;
-      document.getElementById('display-saved-time').textContent = `Parked today at ${saved.timestamp}`;
-      document.getElementById('display-saved-notes').textContent = saved.notes;
+      const bEl = document.getElementById('display-saved-block');
+      const sEl = document.getElementById('display-saved-slot');
+      const zEl = document.getElementById('display-saved-zone');
+      const vEl = document.getElementById('display-saved-vehicle');
+      const tEl = document.getElementById('display-saved-time');
+      const nEl = document.getElementById('display-saved-notes');
+
+      if (bEl) bEl.textContent = `Block ${saved.block}`;
+      if (sEl) sEl.textContent = saved.slot;
+      if (zEl) zEl.textContent = saved.zone || 'Zone B • Four-Wheeler';
+      if (vEl) vEl.textContent = saved.vehicle;
+      if (tEl) tEl.textContent = saved.timestamp.startsWith('Today') ? saved.timestamp : `Parked today at ${saved.timestamp}`;
+      if (nEl) nEl.textContent = saved.notes;
     }
   },
 
@@ -483,8 +653,10 @@ window.App = {
         e.preventDefault();
         const fullName = document.getElementById('profile-input-fullname').value.trim();
         if (fullName) {
-          document.getElementById('dash-user-name').textContent = fullName;
-          document.getElementById('profile-display-name').textContent = fullName;
+          const dashName = document.getElementById('dash-user-name');
+          const profName = document.getElementById('profile-display-name');
+          if (dashName) dashName.textContent = fullName;
+          if (profName) profName.textContent = fullName;
           this.showToast('Profile information updated', 'success');
         }
       });
@@ -526,7 +698,8 @@ window.App = {
   },
 
   renderNotificationsList() {
-    const list = AppStorage.getNotifications();
+    if (typeof AppStorage === 'undefined') return;
+    const list = AppStorage.getNotifications ? AppStorage.getNotifications() : [];
     const dropdownList = document.getElementById('dropdown-notif-list');
     const fullList = document.getElementById('notifications-full-list');
     const dotBadge = document.getElementById('top-notif-badge');

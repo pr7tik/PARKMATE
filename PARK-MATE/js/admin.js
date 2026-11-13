@@ -1,4 +1,5 @@
 /**
+ * js/admin.js
  * LPU CAMPUS ADMIN & ESTATE MANAGEMENT
  * Real-time barrier control, slot override, and university-wide reservation ledger.
  */

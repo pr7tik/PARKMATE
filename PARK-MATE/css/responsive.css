@@ -1,6 +1,6 @@
 /* ==========================================================================
-   CSS DIRECTORY: responsive.css
-   Responsive breakpoints: Desktop, Tablet, and Mobile.
+   css/responsive.css
+   Responsive media queries for desktop, tablet, and mobile layouts.
    ========================================================================== */
 
 @media (max-width: 1024px) {
@@ -83,6 +83,10 @@
 
   .views-wrapper {
     padding: 1rem;
+  }
+
+  .blocks-grid {
+    grid-template-columns: 1fr;
   }
 }
 

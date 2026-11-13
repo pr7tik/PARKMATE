@@ -1,6 +1,6 @@
 /**
- * LPU RESERVATION MODULE
- * Multi-tab scheduling flow, QR gate access verification, and booking management.
+ * js/booking.js
+ * Multi-tab scheduling flow, QR gate pass generator, and My Bookings manager.
  */
 
 const BookingModule = {
@@ -249,7 +249,6 @@ const BookingModule = {
 
     target.status = 'cancelled';
     AppStorage.saveBookings(bookings);
-
     AppStorage.updateSlotStatus(target.slotId, 'available');
 
     AppStorage.addNotification({

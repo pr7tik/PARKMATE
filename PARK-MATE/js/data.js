@@ -1,13 +1,12 @@
 /**
- * LPU CAMPUS MOBILITY INFRASTRUCTURE
- * Master Configuration: Academic Blocks 15–35, Parking Bays, Official University Records.
+ * js/data.js
+ * LPU CAMPUS MASTER CONFIGURATION: Academic Blocks 15–35, Parking Bays & Routes.
  */
 
 const LPU_INITIAL_DATA = {
   university: 'Lovely Professional University',
   campus: 'Phagwara, Punjab, India',
 
-  // University Academic Blocks 15 through 35
   blocks: [
     { number: 15, name: 'Block 15 (School of Computer Science & Engineering)', zones: ['Zone A', 'Zone B', 'EV Lane'], totalSlots: 24 },
     { number: 16, name: 'Block 16 (Mittal School of Business)', zones: ['Zone A', 'Zone B'], totalSlots: 20 },
@@ -32,7 +31,6 @@ const LPU_INITIAL_DATA = {
     { number: 35, name: 'Block 35 (Incubation, Research & Entrepreneurship Hub)', zones: ['Zone A', 'Zone B'], totalSlots: 20 }
   ],
 
-  // Generates slots with realistic real-world occupancy ratios
   generateDefaultSlots() {
     const slots = [];
     this.blocks.forEach(block => {
@@ -64,18 +62,16 @@ const LPU_INITIAL_DATA = {
     return slots;
   },
 
-  // Official Registered Student and Faculty Vehicles
   defaultVehicles: [
     { regNumber: 'PB 08 CC 4821', type: '4w', model: 'Honda City i-VTEC (White)' },
     { regNumber: 'PB 10 BY 1902', type: '2w', model: 'Royal Enfield Classic 350' },
     { regNumber: 'CH 01 BW 7714', type: '4w', model: 'Hyundai Creta SX' }
   ],
 
-  // Realistic Initial System Bookings (Populates the Admin Table & User Records)
   defaultBookings: [
     {
       id: 'LPU-PRK-849102',
-      userId: '12019482',
+      userId: '12629947',
       block: 15,
       slotId: 'B15-P001',
       zone: 'EV Fast Charge',
@@ -102,32 +98,15 @@ const LPU_INITIAL_DATA = {
       duration: '8',
       status: 'active',
       createdAt: new Date(Date.now() - 7200000).toISOString()
-    },
-    {
-      id: 'LPU-PRK-912048',
-      userId: '11904321',
-      block: 34,
-      slotId: 'B34-P005',
-      zone: 'Zone A',
-      vehicleReg: 'PB 10 BY 1902',
-      vehicleType: '2w',
-      date: new Date().toISOString().split('T')[0],
-      arrivalTime: '10:00',
-      departureTime: '14:00',
-      duration: '4',
-      status: 'active',
-      createdAt: new Date(Date.now() - 1800000).toISOString()
     }
   ],
 
-  // Official Campus Notifications
   defaultNotifications: [
     { id: 'notif-1', title: 'Gate 1 ANPR Camera Active', message: 'Automated License Plate Readers are operational at Main Gate 1 (GT Road).', time: '10 mins ago', unread: true },
     { id: 'notif-2', title: 'Block 34 Central Library Availability', message: 'Zone B designated study parking bays are now open for academic hours.', time: '45 mins ago', unread: true },
     { id: 'notif-3', title: 'Campus Traffic Advisory', message: 'Strict speed limit of 20 km/h enforced across all academic ring roads.', time: '2 hours ago', unread: false }
   ],
 
-  // Campus Navigation Routing
   navigationRoutes: {
     'Main Gate 1': { distance: '650 m', time: '8 mins walk', steps: ['Exit Gate 1 security onto Grand Campus Boulevard', 'Proceed past Uni-Mall towards the Academic Ring Road', 'Turn right at Block 22 roundabout', 'Arrive at assigned parking bay entrance'] },
     'Main Gate 2': { distance: '450 m', time: '6 mins walk', steps: ['Enter Gate 2 (Law Gate)', 'Proceed straight past Block 19 Law Lawn', 'Turn left toward Blocks 15–18 zone', 'Verify pass at automated barrier'] },
