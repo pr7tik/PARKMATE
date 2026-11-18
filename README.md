@@ -22,7 +22,6 @@ This project is developed as a demonstration prototype using browser-based stora
 
 ## ✨ Features
 
-- **Demo Authentication** – Login using any non-empty User ID and password.
 - **Interactive Parking Map** – Explore parking blocks, floors, zones, and individual slots.
 - **Parking Reservations** – Select parking slots, dates, arrival times, and durations.
 - **QR Booking Confirmation** – Generate QR-based booking references.
